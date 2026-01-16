@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@600&display=swap');
 
 body {
-  
+
   font-family: 'Open Sans', sans-serif;
 }
 
@@ -14,17 +14,21 @@ body {
   padding: 1rem 0;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
   height: calc(100vh - 4rem);
-  overflow-y: auto;         /* เปิด scroll แนวตั้ง */
+  overflow-y: auto;
+  /* เปิด scroll แนวตั้ง */
   overflow-x: hidden;
-   width: 6rem;
-   overflow: visible;
+  width: 6rem;
+  overflow: visible;
 }
+
+/* Scroll handling moved to inner container if needed, but for tooltips to work with CSS only, main container must be visible */
+
 .navbar::-webkit-scrollbar {
   width: 6px;
 }
 
 .navbar::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.2);
+  background-color: rgba(0, 0, 0, 0.2);
   border-radius: 3px;
 }
 
@@ -41,13 +45,14 @@ body {
   width: calc(1rem * 5.5);
   color: #6a778e;
   transition: 250ms ease all;
-  
+
 }
 
 .navbar__link span {
-   position: fixed;             /* ให้ลอยเหนือกรอบ */
-  left: 6rem;      
-  
+  position: fixed;
+  /* ให้ลอยเหนือกรอบ */
+  left: 6rem;
+
   transform: translate(-3rem);
   margin-left: 1rem;
   opacity: 0;
@@ -57,7 +62,7 @@ body {
   padding: 0.75rem;
   transition: 250ms ease all;
   border-radius: calc(10px * 1.75);
-  
+
 }
 
 .navbar__link:hover {
@@ -86,15 +91,19 @@ body {
   margin-top: auto;
 }
 
-span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
-  font-size: 0.95rem;          /* ปรับขนาดฟ้อนให้อ่านง่าย */
-  font-weight: 600;            /* หนาขึ้นแบบดูดี */
+span {
+  white-space: nowrap;
+  /* ไม่ตัดบรรทัด */
+  font-size: 0.95rem;
+  /* ปรับขนาดฟ้อนให้อ่านง่าย */
+  font-weight: 600;
+  /* หนาขึ้นแบบดูดี */
   font-family: 'Open Sans', sans-serif;
 }
 
 
 .navbar__item.has-submenu {
-   position: relative;
+  position: relative;
   z-index: 9999;
 }
 
@@ -102,12 +111,12 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
   background-color: #f7f7f7;
   position: absolute;
   top: 100%;
-    left: 0%;     
-   
+  left: 0%;
+
   min-width: 200px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
   z-index: 9999;
-  
+
 }
 
 .submenu li a {
@@ -117,7 +126,7 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
   color: #333;
   text-decoration: none;
   background-color: #ffffff;
-  
+
 }
 
 .submenu li a:hover {
@@ -133,7 +142,7 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  color: #333;                    
+  color: #333;
   text-decoration: none;
   background: #fff;
   transition: background-color .2s ease;
@@ -157,15 +166,19 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
 
 .navbar-scroll {
   height: 100%;
-  overflow-y: visible;     /* ใช้ scroll ที่นี่แทน */
-  overflow-x: hidden;   /* ป้องกันสกรอลแนวนอน */
-  position: relative; 
+  overflow-y: visible;
+  /* ใช้ scroll ที่นี่แทน */
+  overflow-x: hidden;
+  /* ป้องกันสกรอลแนวนอน */
+  position: relative;
 }
 
 
 .tooltip {
-  position: fixed;          /* ใช้ fixed เพื่อให้อยู่นอก flow */
-  left: 6rem;               /* ระยะจากขอบซ้ายเท่ากับความกว้าง navbar */
+  position: fixed;
+  /* ใช้ fixed เพื่อให้อยู่นอก flow */
+  left: 6rem;
+  /* ระยะจากขอบซ้ายเท่ากับความกว้าง navbar */
   padding: 0.6rem 0.9rem;
   background: #fff;
   color: #406ff3;
@@ -175,7 +188,7 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
   white-space: nowrap;
   pointer-events: none;
   transition: opacity 0.25s ease, transform 0.25s ease;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   z-index: 9999;
   font-size: 0.95rem;
   font-weight: 600;
@@ -185,4 +198,89 @@ span{white-space: nowrap;         /* ไม่ตัดบรรทัด */
 .navbar__link:hover .tooltip {
   opacity: 1;
   transform: translateX(0);
+}
+
+/* ===== Mobile Navbar (Bottom Bar) ===== */
+@media screen and (max-width: 768px) {
+  .navbar {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    /* สูงพอสำหรับ icon */
+    border-radius: 0;
+    padding: 0;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+    /* ให้ submenu เด้งขึ้นมาได้ */
+  }
+
+  .navbar-scroll {
+    width: 100%;
+    overflow: visible;
+  }
+
+  .navbar__menu {
+    flex-direction: row;
+    justify-content: space-evenly;
+    /* กระจาย icon */
+    padding: 0;
+    width: 100%;
+    align-items: center;
+    overflow: visible;
+  }
+
+  .navbar__item {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .navbar__item.logout {
+    margin-top: 0;
+    /* ไม่ดันไปสุดขอบ */
+  }
+
+  .navbar__link {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ปิด Tooltip แบบเดิมบนมือถือ */
+  .navbar__link span,
+  .tooltip {
+    display: none !important;
+  }
+
+  /* จัดการ Submenu บนมือถือให้เด้งขึ้นข้างบน */
+  .submenu {
+    top: auto;
+    bottom: 70px;
+    /* อยู่เหนือ navbar */
+    left: 0;
+    width: 200px;
+    /* หรือ width: 100% ถ้าชอบเต็มจอ */
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  /* ปรับตำแหน่งลูกศร dropdown ให้หมุนขึ้น */
+  .submenu-arrow {
+    display: none;
+    /* ซ่อนลูกศรไปเลยบนมือถือเพื่อความสะอาด หรือปรับให้หมุน */
+  }
+
+  /* ปรับขนาด icon ให้พอดีนิ้ว */
+  .navbar__link i {
+    width: 24px;
+    height: 24px;
+  }
 }

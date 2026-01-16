@@ -7,9 +7,7 @@ import Swal from 'sweetalert2';
 function CheckWorkAdmin() {
   const [works, setWorks] = useState([]);
   const [filteredWorks, setFilteredWorks] = useState([]);
-  const [editingWork, setEditingWork] = useState(null);
-  const [newStatus, setNewStatus] = useState('');
-  const [newComment, setNewComment] = useState('');
+
   const [statusFilter, setStatusFilter] = useState('รอดําเนินการ');
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
@@ -34,23 +32,59 @@ function CheckWorkAdmin() {
       .catch(err => console.error(err));
   };
 
-  const openEdit = (work) => {
-    setEditingWork(work);
-    setNewStatus(work.status);
-    setNewComment(work.reviewer_comment || '');
+
+  const handleApprove = (work) => {
+    Swal.fire({
+      title: 'ยืนยันผลการตรวจสอบ?',
+      text: "คุณต้องการให้งานนี้ 'ผ่าน' ใช่หรือไม่?",
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#28a745',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'ใช่, ผ่าน',
+      cancelButtonText: 'ยกเลิก'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        await updateWorkStatus(work, 'ผ่าน', '-');
+      }
+    });
   };
 
-  const handleSave = async () => {
+  const handleReject = (work) => {
+    Swal.fire({
+      title: 'ไม่อนุมัติงาน',
+      text: "กรุณาระบุเหตุผลที่ไม่ผ่าน:",
+      input: 'textarea',
+      inputPlaceholder: 'ระบุสิ่งที่ต้องแก้ไข...',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      confirmButtonText: 'ยืนยัน (ไม่ผ่าน)',
+      cancelButtonText: 'ยกเลิก',
+      preConfirm: (comment) => {
+        if (!comment) {
+          Swal.showValidationMessage('กรุณาระบุเหตุผล');
+        }
+        return comment;
+      }
+    }).then(async (res) => {
+      if (res.isConfirmed) {
+        await updateWorkStatus(work, 'ไม่ผ่าน', res.value);
+      }
+    });
+  };
+
+  const updateWorkStatus = async (work, status, comment) => {
     try {
       await axios.put('/api/submitted-works/update', {
-        username: editingWork.username,
-        project_id: editingWork.project_id,
-        works_id: editingWork.works_id,
-        round_number: editingWork.round_number,
-        status: newStatus,
-        reviewer_comment: newComment
+        submitted_id: work.submitted_id,
+        link: work.link,
+        username: work.username,
+        project_id: work.project_id,
+        works_id: work.works_id,
+        round_number: work.round_number,
+        status: status,
+        reviewer_comment: comment
       });
-      setEditingWork(null);
       fetchWorks();
 
       Swal.fire({
@@ -70,7 +104,7 @@ function CheckWorkAdmin() {
   };
 
   const getStatusColor = (status) => {
-    switch(status) {
+    switch (status) {
       case 'ผ่าน': return '#d4edda';        // เขียวอ่อน
       case 'ไม่ผ่าน': return '#f8d7da';    // แดงอ่อน
       case 'รอดําเนินการ': return '#fff3cd'; // เหลืองอ่อน
@@ -97,15 +131,15 @@ function CheckWorkAdmin() {
 
   return (
     <>
-      <Navbar/>
+      <Navbar />
       <div className="content-wrapper">
         <div className="card">
           <h3>ตรวจสอบและแก้ไขสถานะงาน</h3>
 
           <label>กรองสถานะ: </label>
-          <select 
-            value={statusFilter} 
-            onChange={e => setStatusFilter(e.target.value)} 
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value)}
             style={{ marginBottom: '1rem', marginLeft: '0.5rem' }}
             className='select-custom'
           >
@@ -126,7 +160,7 @@ function CheckWorkAdmin() {
                 <th>วันที่ส่ง</th>
                 <th>สถานะ</th>
                 <th>คอมเมนต์ผู้ตรวจ</th>
-                <th>แก้ไขสถานะ</th>
+                <th>จัดการ</th>
               </tr>
             </thead>
             <tbody>
@@ -136,8 +170,8 @@ function CheckWorkAdmin() {
                 </tr>
               ) : (
                 currentWorks.map(work => (
-                  <tr key={`${work.username}-${work.project_id}-${work.works_id}-${work.round_number}`} 
-                      style={{ backgroundColor: getStatusColor(work.status) }}>
+                  <tr key={`${work.username}-${work.project_id}-${work.works_id}-${work.round_number}`}
+                    style={{ backgroundColor: getStatusColor(work.status) }}>
                     <td>{work.username}</td>
                     <td>{work.project_name}</td>
                     <td>{work.works_name}</td>
@@ -146,7 +180,22 @@ function CheckWorkAdmin() {
                     <td>{new Date(work.submitted_date).toLocaleDateString('th-TH')}</td>
                     <td>{work.status}</td>
                     <td>{work.reviewer_comment || '-'}</td>
-                    <td><button onClick={() => openEdit(work)} className='button-ED'>แก้ไขสถานะ</button></td>
+                    <td>
+                      <button
+                        onClick={() => handleApprove(work)}
+                        className='button-success'
+                        style={{ marginRight: '5px', backgroundColor: '#28a745', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ผ่าน
+                      </button>
+                      <button
+                        onClick={() => handleReject(work)}
+                        className='button-danger'
+                        style={{ backgroundColor: '#dc3545', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ไม่ผ่าน
+                      </button>
+                    </td>
                   </tr>
                 ))
               )}
@@ -158,34 +207,6 @@ function CheckWorkAdmin() {
             <span>หน้า {currentPage} / {Math.ceil(filteredWorks.length / rowsPerPage)}</span>
             <button onClick={nextPage} disabled={currentPage === Math.ceil(filteredWorks.length / rowsPerPage)} className='BBB'>ถัดไป</button>
           </div>
-
-          {editingWork && (
-            <div className="modal-overlay">
-              <div className="modal-content">
-                <h3>แก้ไขสถานะงาน</h3>
-                <p><b>โปรเจค:</b> {editingWork.project_name} <b>งาน:</b> {editingWork.works_name} <b>รอบ:</b> {editingWork.round_number}</p>
-                <br/>
-                <label>สถานะใหม่</label>
-                <select value={newStatus} onChange={e => setNewStatus(e.target.value)} className='select-custom'>
-                  <option value="">เลือกสถานะ</option>
-                  <option value="ผ่าน">ผ่าน</option>
-                  <option value="ไม่ผ่าน">ไม่ผ่าน</option>
-                </select><br/>
-                <label>คอมเมนต์ผู้ตรวจ</label>
-                <textarea
-                  value={newComment}
-                  onChange={e => setNewComment(e.target.value)}
-                  rows={4}
-                  placeholder="คอมเมนต์ผู้ตรวจ"
-                  autoComplete="off"
-                />
-                <div style={{ marginTop: '1rem' }}>
-                  <button onClick={handleSave} className="button-save">บันทึก</button>
-                  <button onClick={() => setEditingWork(null)} className="button-cancel" style={{ marginLeft: '10px' }}>ยกเลิก</button>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </>

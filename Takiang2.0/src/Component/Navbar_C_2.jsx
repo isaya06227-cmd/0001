@@ -6,9 +6,9 @@ function Navbar() {
   const [showSubmenu, setShowSubmenu] = useState(false);
 
   const handleLogout = () => {
-  localStorage.clear();
-  window.location.replace('/');
-}
+    localStorage.clear();
+    window.location.replace('/');
+  }
 
 
   const toggleSubmenu = () => {
@@ -21,23 +21,23 @@ function Navbar() {
   }, [showSubmenu]);
 
   return (
-    
+
     <nav className="navbar">
-      <div class="navbar-scroll">
-      <ul className="navbar__menu">
-        {/*<li className="navbar__item">
+      <div className="navbar-scroll">
+        <ul className="navbar__menu">
+          {/*<li className="navbar__item">
           <a href="/Consider" className="navbar__link">
             <i data-feather="calendar"></i>
             <span className='tooltip'>ตารางงานของเเต่ละทีม</span>
           </a>
         </li>*/}
-         <li className="navbar__item">
-          <a href="/ReviewWorks_2" className="navbar__link">
-            <i data-feather="search"></i>
-            <span>ตรวจสอบงาน</span>
-          </a>
-        </li>
-        {/*<li className="navbar__item">
+          <li className="navbar__item">
+            <a href="/ReviewWorks_2" className="navbar__link">
+              <i data-feather="search"></i>
+              <span>ตรวจสอบงาน</span>
+            </a>
+          </li>
+          {/*<li className="navbar__item">
           <a href="/MyWork_A" className="navbar__link">
             <i data-feather="briefcase"></i>
             <span>งานของฉัน</span>
@@ -49,13 +49,13 @@ function Navbar() {
             <span>ส่งงานตรวจสอบ</span>
           </a>
         </li>*/}
-        {/*<li className="navbar__item">
+          {/*<li className="navbar__item">
           <a href="/#" className="navbar__link">
             <i data-feather="check-circle"></i>
             <span>สถานะของงานที่ส่งตรวจ</span>
           </a>
         </li>*/}
-        {/* <li className="navbar__item">
+          {/* <li className="navbar__item">
           <a href="/Completed_work_A" className="navbar__link">
             <i data-feather="check-square"></i>
             <span>จำนวนงานที่เรียบร้อย</span>
@@ -109,29 +109,29 @@ function Navbar() {
   )}
 </li>*/}
 
-        <li className="navbar__item">
-          <a href="/Profile_2" className="navbar__link">
-            <i data-feather="user"></i>
-            <span>ข้อมูลส่วนตัว</span>
-          </a>
-        </li>
-         {/* <li className="navbar__item">
+          <li className="navbar__item">
+            <a href="/Profile_2" className="navbar__link">
+              <i data-feather="user"></i>
+              <span>ข้อมูลส่วนตัว</span>
+            </a>
+          </li>
+          {/* <li className="navbar__item">
           <a href="/Add_user" className="navbar__link">
             <i data-feather="user-plus"></i>
             <span>สร้างบัญชีผู้ใช้</span>
           </a>
         </li>*/}
 
-        <li className="navbar__item logout" onClick={handleLogout}>
-          <a href="#" className="navbar__link">
-            <i data-feather="log-out"></i>
-            <span>ออกจากระบบ</span>
-          </a>
-        </li>
-      </ul>
+          <li className="navbar__item logout" onClick={handleLogout}>
+            <a href="#" className="navbar__link">
+              <i data-feather="log-out"></i>
+              <span>ออกจากระบบ</span>
+            </a>
+          </li>
+        </ul>
       </div>
     </nav>
-    
+
   );
 }
 

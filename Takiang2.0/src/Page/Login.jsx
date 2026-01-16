@@ -10,10 +10,10 @@ function Login() {
     password: '',
   })
 
-  const navigate = useNavigate()  
+  const navigate = useNavigate()
 
-    console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-    
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -49,19 +49,15 @@ function Login() {
         icon: 'success',
         title: message || 'เข้าสู่ระบบสำเร็จ',
         confirmButtonText: 'ตกลง',
-   }).then(() => {
-  if (team === 'graphics' || team === 'marketing') {
-    navigate('/Mywork_user');
-  } else if (team === 'admin') {
-    navigate('/Admin');
-  } else if (team === 'consider1') {
-    navigate('/ReviewWorks'); 
-  } else if (team === 'consider2') {
-    navigate('/ReviewWorks_2'); 
-  } else {
-    navigate('/');
-  }
-});
+      }).then(() => {
+        if (team === 'graphics' || team === 'marketing') {
+          navigate('/Mywork_user');
+        } else if (team === 'admin') {
+          navigate('/Admin');
+        } else {
+          navigate('/');
+        }
+      });
     } catch (err) {
       Swal.fire({
         icon: 'error',
@@ -100,8 +96,9 @@ function Login() {
           value={formData.password}
           onChange={handleChange}
         />
-    
+
         <button type="submit" className='button1'>Log In</button>
+        
       </form>
     </div>
   )

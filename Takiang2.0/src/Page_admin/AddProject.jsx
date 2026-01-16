@@ -98,34 +98,34 @@ function AddProject() {
               />
             </div>
 
-           <div className="form-group">
-  <label>ชื่อลูกค้า</label>
-  <input
-    list="customerList"
-    autoComplete="off"
-    name="customer_name"
-    value={formData.customer_name || ''}
-    onChange={(e) => {
-      const name = e.target.value;
-      const selected = customers.find(cust => cust.customer_name === name);
-      setFormData((prev) => ({
-        ...prev,
-        customer_name: name,
-        customer_id: selected ? selected.customer_id : ''
-      }));
-    }}
-    placeholder="พิมพ์ชื่อลูกค้า"
-    required
-  />
-  <datalist id="customerList">
-    {customers.map((cust) => (
-      <option 
-        key={cust.customer_id} 
-        value={cust.customer_name} 
-      />
-    ))}
-  </datalist>
-</div>
+            <div className="form-group">
+              <label>ชื่อลูกค้า</label>
+              <input
+                list="customerList"
+                autoComplete="off"
+                name="customer_name"
+                value={formData.customer_name || ''}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  const selected = customers.find(cust => cust.customer_name === name);
+                  setFormData((prev) => ({
+                    ...prev,
+                    customer_name: name,
+                    customer_id: selected ? selected.customer_id : ''
+                  }));
+                }}
+                placeholder="พิมพ์ชื่อลูกค้า"
+                required
+              />
+              <datalist id="customerList">
+                {customers.map((cust) => (
+                  <option
+                    key={cust.customer_id}
+                    value={cust.customer_name}
+                  />
+                ))}
+              </datalist>
+            </div>
 
 
 
@@ -143,15 +143,56 @@ function AddProject() {
 
             <div className="form-group">
               <label>ทีมที่รับผิดชอบ</label>
-              <select
-                name="responsible_team"
-                value={formData.responsible_team}
-                onChange={handleChange}
-              >
-                <option value="graphics">Graphics</option>
-                <option value="marketing">Marketing</option>
-                <option value="admin">Admin</option>
-              </select>
+              <div className="team-checkbox-group" style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    value="graphics"
+                    checked={formData.responsible_team.split(',').includes('graphics')}
+                    onChange={(e) => {
+                      const teams = formData.responsible_team ? formData.responsible_team.split(',') : [];
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, responsible_team: [...teams, 'graphics'].filter(Boolean).join(',') }));
+                      } else {
+                        setFormData(prev => ({ ...prev, responsible_team: teams.filter(t => t !== 'graphics').join(',') }));
+                      }
+                    }}
+                  />
+                  Graphics
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    value="marketing"
+                    checked={formData.responsible_team.split(',').includes('marketing')}
+                    onChange={(e) => {
+                      const teams = formData.responsible_team ? formData.responsible_team.split(',') : [];
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, responsible_team: [...teams, 'marketing'].filter(Boolean).join(',') }));
+                      } else {
+                        setFormData(prev => ({ ...prev, responsible_team: teams.filter(t => t !== 'marketing').join(',') }));
+                      }
+                    }}
+                  />
+                  Marketing
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '5px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    value="admin"
+                    checked={formData.responsible_team.split(',').includes('admin')}
+                    onChange={(e) => {
+                      const teams = formData.responsible_team ? formData.responsible_team.split(',') : [];
+                      if (e.target.checked) {
+                        setFormData(prev => ({ ...prev, responsible_team: [...teams, 'admin'].filter(Boolean).join(',') }));
+                      } else {
+                        setFormData(prev => ({ ...prev, responsible_team: teams.filter(t => t !== 'admin').join(',') }));
+                      }
+                    }}
+                  />
+                  Admin
+                </label>
+              </div>
             </div>
 
             <div className="form-group">

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import RequireAuth from './Component/RequireAuth'
 
 import Login from './Page/Login'
+import Register from './Page/Register'
 import Index_user from './Page/Index_user'
 import MyWork_user from './Page/Mywork_user'
 import SubmitWork from './Page/SubmitWork'
@@ -11,6 +12,7 @@ import Completed_work from './Page/Completed_work'
 import Profile from './Page/Profile'
 
 import Admin from './Page_admin/Admin'
+import Dashboard_A from './Page_admin/Dashboard_A'
 import MyWork_A from './Page_admin/Mywork_A'
 import Completed_work_A from './Page_admin/Completed_work_A'
 import Profile_A from './Page_admin/Profile_A'
@@ -24,17 +26,13 @@ import AddJob from './Page_admin/AddJob'
 import EditData from './Page_admin/EditData'
 import Work_completed from './Page_admin/work_completed'
 
-import Consider from './Page_Consider/Consider'
-import Profile_C from './Page_Consider/Profile_C'
-import ReviewWorks from './Page_Consider/ReviewWorks'
-import ReviewWorks_2 from './Page_Consider/ReviewWorks_2'
-import Profile_2 from './Page_Consider/Profile_C_2'
 function App() {
   return (
     <Router>
       <Routes>
         {/* หน้า Login ไม่ต้องล็อกอิน */}
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* User Pages (ล็อกอินก่อน) */}
         <Route path="/index_user" element={
@@ -57,6 +55,9 @@ function App() {
         } />
 
         {/* Admin Pages (ล็อกอินก่อน) */}
+        <Route path="/Dashboard_A" element={
+          <RequireAuth><Dashboard_A /></RequireAuth>
+        } />
         <Route path="/Admin" element={
           <RequireAuth><Admin /></RequireAuth>
         } />
@@ -93,21 +94,7 @@ function App() {
         <Route path="/EditData" element={
           <RequireAuth><EditData /></RequireAuth>
         } />
-        <Route path="/Consider" element={
-          <RequireAuth><Consider /></RequireAuth>
-        } />
-        <Route path="/Profile_C" element={
-          <RequireAuth><Profile_C /></RequireAuth>
-        } />
-        <Route path="/ReviewWorks" element={
-          <RequireAuth><ReviewWorks /></RequireAuth>
-        } />
-        <Route path="/ReviewWorks_2" element={
-          <RequireAuth><ReviewWorks_2 /></RequireAuth>
-        } />
-        <Route path="/Profile_2" element={
-          <RequireAuth><Profile_2 /></RequireAuth>
-        } />
+
         <Route path="/work_completed" element={
           <RequireAuth><Work_completed /></RequireAuth>
         } />

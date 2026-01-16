@@ -8,10 +8,8 @@ import Select from 'react-select';
 
 function AddSubWork() {
   const [projects, setProjects] = useState([]);
-  const [teams, setTeams] = useState([]);
-  const [employees, setEmployees] = useState([]);
 
-  const workTypeOptions = [
+  const graphicsWorkTypes = [
     { value: "แผ่นอะคริลิกตัดตรงหรือเลเซอร์", label: "แผ่นอะคริลิกตัดตรงหรือเลเซอร์" },
     { value: "ฟิล์มโปร่งแสง ", label: "ฟิล์มโปร่งแสง " },
     { value: "แผ่นพับประชาสัมพันธ์", label: "แผ่นพับประชาสัมพันธ์" },
@@ -42,6 +40,37 @@ function AddSubWork() {
     { value: "วัสดุพีวีซีสำหรับพิมพ์งานขนาดใหญ่", label: "วัสดุพีวีซีสำหรับพิมพ์งานขนาดใหญ่" },
   ];
 
+  const marketingWorkTypes = [
+    { value: "ยิงโฆษณา Facebook Ads / Instagram Ads", label: "ยิงโฆษณา Facebook Ads / Instagram Ads" },
+    { value: "ยิงโฆษณา Google Ads / YouTube Search", label: "ยิงโฆษณา Google Ads / YouTube Search" },
+    { value: "ยิงโฆษณา TikTok Shop / Shopee / Lazada", label: "ยิงโฆษณา TikTok Shop / Shopee / Lazada" },
+    { value: "ทำคอนเทนต์ TikTok / Reels / Short Video", label: "ทำคอนเทนต์ TikTok / Reels / Short Video" },
+    { value: "ออกแบบ Content Marketing / Ads Graphic", label: "ออกแบบ Content Marketing / Ads Graphic" },
+    { value: "เขียนบทความ SEO / Copywriting โปรโมตสินค้า", label: "เขียนบทความ SEO / Copywriting โปรโมตสินค้า" },
+    { value: "แอดมินดูแลเพจ / ตอบแชทลูกค้า / ปิดการขาย", label: "แอดมินดูแลเพจ / ตอบแชทลูกค้า / ปิดการขาย" },
+    { value: "วางแผนกลยุทธ์การตลาดประจำสัปดาห์/เดือน", label: "วางแผนกลยุทธ์การตลาดประจำสัปดาห์/เดือน" },
+    { value: "วิเคราะห์ข้อมูลเชิงลึกและรายงานผลการขาย", label: "วิเคราะห์ข้อมูลเชิงลึกและรายงานผลการขาย" },
+    { value: "จัดกิจกรรมทางการตลาด / โปรโมชั่น / แคมเปญ", label: "จัดกิจกรรมทางการตลาด / โปรโมชั่น / แคมเปญ" },
+    { value: "ดูแลระบบหลังบ้านเว็บไซต์ / Landing Page", label: "ดูแลระบบหลังบ้านเว็บไซต์ / Landing Page" },
+  ];
+
+  const adminWorkTypes = [
+    { value: "ประสานงานระหว่างลูกค้าและทีมผลิต", label: "ประสานงานระหว่างลูกค้าและทีมผลิต" },
+    { value: "จัดทำใบเสนอราคา (Quotation) / ใบสั่งซื้อ", label: "จัดทำใบเสนอราคา (Quotation) / ใบสั่งซื้อ" },
+    { value: "ออกใบกำกับภาษี / ใบเสร็จรับเงิน / ใบส่งสินค้า", label: "ออกใบกำกับภาษี / ใบเสร็จรับเงิน / ใบส่งสินค้า" },
+    { value: "ตรวจสอบรายการสต็อกสินค้าและวัสดุอุปกรณ์", label: "ตรวจสอบรายการสต็อกสินค้าและวัสดุอุปกรณ์" },
+    { value: "บริหารจัดการงบประมาณและสรุปค่าใช้จ่ายโปรเจกต์", label: "บริหารจัดการงบประมาณและสรุปค่าใช้จ่ายโปรเจกต์" },
+    { value: "วางแผนตารางคิวรถส่งของและบริหาร Logistic", label: "วางแผนตารางคิวรถส่งของและบริหาร Logistic" },
+    { value: "ประสานงานซัพพลายเออร์และสั่งซื้อวัสดุ", label: "ประสานงานซัพพลายเออร์และสั่งซื้อวัสดุ" },
+    { value: "ตรวจสอบความถูกต้องของงานพิมพ์ก่อนส่งลูกค้า", label: "ตรวจสอบความถูกต้องของงานพิมพ์ก่อนส่งลูกค้า" },
+    { value: "จัดการเอกสารสัญญาและงานธุรการทั่วไป", label: "จัดการเอกสารสัญญาและงานธุรการทั่วไป" },
+    { value: "รวบรวมข้อมูลพนักงานและเช็คตารางทำงาน", label: "รวบรวมข้อมูลพนักงานและเช็คตารางทำงาน" },
+  ];
+
+  const allWorkTypes = [...graphicsWorkTypes, ...marketingWorkTypes, ...adminWorkTypes];
+
+  const [displayWorkTypes, setDisplayWorkTypes] = useState(allWorkTypes);
+
   const [formData, setFormData] = useState({
     works_name: '',
     work_type: '',
@@ -49,16 +78,28 @@ function AddSubWork() {
     description: '',
     assigned_to: '',
     due_date: '',
-    price:'',
+    price: '',
     status: 'เลือกสถานะ',
     team: ''
   });
 
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+
   useEffect(() => {
     feather.replace();
     fetchProjects();
-    fetchTeams();
+    fetchAllEmployees();
   }, []);
+
+  const fetchAllEmployees = async () => {
+    try {
+      const res = await axios.get('/api/employees-with-users');
+      setAllEmployees(res.data);
+    } catch (err) {
+      console.error('โหลดข้อมูลพนักงานล้มเหลว:', err);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -69,24 +110,6 @@ function AddSubWork() {
     }
   };
 
-  const fetchTeams = async () => {
-    try {
-      const res = await axios.get('/api/teams');
-      setTeams(res.data);
-    } catch (err) {
-      console.error('โหลดทีมล้มเหลว:', err);
-    }
-  };
-
-  const fetchEmployeesByTeam = async (team) => {
-    try {
-      const res = await axios.get(`/api/employees-by-team/${team}`);
-      setEmployees(res.data);
-    } catch (err) {
-      console.error('โหลดข้อมูลพนักงานล้มเหลว:', err);
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -94,19 +117,63 @@ function AddSubWork() {
       [name]: value
     }));
 
-    if (name === 'team') {
-      setFormData(prev => ({
-        ...prev,
-        assigned_to: ''
-      }));
-      fetchEmployeesByTeam(value);
+    if (name === 'project_id' || name === 'assigned_to') {
+      const currentProjectId = name === 'project_id' ? value : formData.project_id;
+      const currentAssignedTo = name === 'assigned_to' ? value : formData.assigned_to;
+
+      const selectedProject = projects.find(p => p.project_id === currentProjectId);
+      const selectedEmployee = allEmployees.find(emp => emp.username === currentAssignedTo);
+
+      if (selectedProject) {
+        const projectTeams = selectedProject.responsible_team ? selectedProject.responsible_team.split(',') : [];
+
+        // 1. Filter employees based on project teams
+        const filtered = allEmployees.filter(emp => projectTeams.includes(emp.team));
+        setFilteredEmployees(filtered);
+
+        // 2. Determine work types to display
+        let targetTeams = [];
+        if (selectedEmployee && projectTeams.includes(selectedEmployee.team)) {
+          // If an employee is selected, focus on THEIR team
+          targetTeams = [selectedEmployee.team];
+        } else {
+          // Otherwise, show work types for ALL teams in the project
+          targetTeams = projectTeams;
+        }
+
+        let combinedTypes = [];
+        if (targetTeams.includes('graphics')) combinedTypes = [...combinedTypes, ...graphicsWorkTypes];
+        if (targetTeams.includes('marketing')) combinedTypes = [...combinedTypes, ...marketingWorkTypes];
+        if (targetTeams.includes('admin')) combinedTypes = [...combinedTypes, ...adminWorkTypes];
+
+        const uniqueTypes = Array.from(new Set(combinedTypes.map(t => JSON.stringify(t)))).map(t => JSON.parse(t));
+        setDisplayWorkTypes([
+          ...uniqueTypes,
+          { value: 'ADD_NEW_TYPE', label: '➕ เพิ่มประเภทงานใหม่...', color: '#4a90e2' }
+        ]);
+
+        // Reset fields if relevant
+        if (name === 'project_id') {
+          setFormData(prev => ({ ...prev, assigned_to: '', work_type: '' }));
+        }
+      } else {
+        setFilteredEmployees([]);
+        setDisplayWorkTypes(allWorkTypes);
+        if (name === 'project_id') {
+          setFormData(prev => ({ ...prev, assigned_to: '', work_type: '' }));
+        }
+      }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/works', formData);
+      // Find team for the assigned employee to persist it if needed by the backend
+      const assignedEmp = allEmployees.find(emp => emp.username === formData.assigned_to);
+      const submitData = { ...formData, team: assignedEmp ? assignedEmp.team : '' };
+
+      await axios.post('/api/works', submitData);
       Swal.fire({
         title: 'สำเร็จ!',
         text: 'เพิ่มงานย่อยเรียบร้อยแล้ว',
@@ -116,7 +183,7 @@ function AddSubWork() {
       setFormData({
         works_name: '',
         work_type: '',
-        price:'',
+        price: '',
         project_id: '',
         description: '',
         assigned_to: '',
@@ -124,7 +191,7 @@ function AddSubWork() {
         status: 'เลือกสถานะ',
         team: ''
       });
-      setEmployees([]);
+      setFilteredEmployees([]);
     } catch (err) {
       console.error('เพิ่มงานย่อยล้มเหลว:', err);
       Swal.fire({
@@ -134,6 +201,58 @@ function AddSubWork() {
         confirmButtonText: 'ปิด'
       });
     }
+  };
+
+  const handleWorkTypeChange = async (selected) => {
+    if (selected?.value === 'ADD_NEW_TYPE') {
+      const { value: newType } = await Swal.fire({
+        title: 'เพิ่มประเภทงานใหม่',
+        input: 'text',
+        inputLabel: 'ชื่อประเภทงาน',
+        inputPlaceholder: 'ระบุชื่อประเภทงานที่ต้องการเพิ่ม...',
+        showCancelButton: true,
+        confirmButtonText: 'ตกลง',
+        cancelButtonText: 'ยกเลิก',
+        inputValidator: (value) => {
+          if (!value) {
+            return 'กรุณากรอกชื่อประเภทงาน';
+          }
+        }
+      });
+
+      if (newType) {
+        const newOption = { value: newType, label: newType, isCustom: true };
+        setDisplayWorkTypes(prev => {
+          const updated = [...prev];
+          updated.splice(updated.length - 1, 0, newOption);
+          return updated;
+        });
+        setFormData(prev => ({ ...prev, work_type: newType }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, work_type: selected?.value || '' }));
+    }
+  };
+
+  const handleDeleteType = (e, typeValue) => {
+    e.stopPropagation();
+    Swal.fire({
+      title: 'ลบประเภทงาน?',
+      text: `คุณต้องการลบ "${typeValue}" ออกจากรายการใช่หรือไม่?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ลบ',
+      cancelButtonText: 'ยกเลิก'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        setDisplayWorkTypes(prev => prev.filter(opt => opt.value !== typeValue));
+        if (formData.work_type === typeValue) {
+          setFormData(prev => ({ ...prev, work_type: '' }));
+        }
+      }
+    });
   };
 
   return (
@@ -147,7 +266,7 @@ function AddSubWork() {
           </div>
 
           <form onSubmit={handleSubmit} className="user-form">
-            
+
             <div className="form-group">
               <label>โปรเจกต์</label>
               <select
@@ -165,25 +284,6 @@ function AddSubWork() {
               </select>
             </div>
 
-            
-            <div className="form-group">
-              <label>ทีม</label>
-              <select
-                name="team"
-                value={formData.team}
-                onChange={handleChange}
-                required
-              >
-                <option value="">-- เลือกทีม --</option>
-                {teams.map((t, index) => (
-                  <option key={index} value={t.team}>
-                    {t.team}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            
             <div className="form-group">
               <label>ผู้รับผิดชอบ</label>
               <select
@@ -191,18 +291,18 @@ function AddSubWork() {
                 value={formData.assigned_to}
                 onChange={handleChange}
                 required
-                disabled={!formData.team}
+                disabled={!formData.project_id}
               >
                 <option value="">-- เลือกผู้รับผิดชอบ --</option>
-                {employees.map((emp) => (
+                {filteredEmployees.map((emp) => (
                   <option key={emp.employee_id} value={emp.username}>
-                    {emp.full_name} ({emp.username})
+                    {emp.full_name} ({emp.username}) - ทีม {emp.team}
                   </option>
                 ))}
               </select>
             </div>
 
-            
+
             <div className="form-group">
               <label>ชื่องาน</label>
               <input
@@ -216,15 +316,44 @@ function AddSubWork() {
             </div>
 
             {/* ประเภทงาน */}
-            <div className="form-group">
+            <div className="form-group" style={{ position: 'relative' }}>
               <label>ประเภทงาน</label>
               <Select
-                options={workTypeOptions}
-                value={workTypeOptions.find(opt => opt.value === formData.work_type) || null}
-                onChange={(selected) => setFormData(prev => ({ ...prev, work_type: selected?.value || '' }))}
+                options={displayWorkTypes}
+                value={displayWorkTypes.find(opt => opt.value === formData.work_type) || null}
+                onChange={handleWorkTypeChange}
                 placeholder="-- เลือกประเภทงาน --"
                 isSearchable
-                maxMenuHeight={150} // สูงประมาณ 5 ตัวเลือก
+                maxMenuHeight={200}
+                formatOptionLabel={(data) => (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>{data.label}</span>
+                    {data.isCustom && (
+                      <span
+                        onClick={(e) => handleDeleteType(e, data.value)}
+                        style={{
+                          color: '#e53e3e',
+                          cursor: 'pointer',
+                          padding: '2px 8px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          borderRadius: '4px',
+                          backgroundColor: '#fff5f5'
+                        }}
+                        title="ลบประเภทงานนี้"
+                      >
+                        ✕
+                      </span>
+                    )}
+                  </div>
+                )}
+                styles={{
+                  option: (provided, state) => ({
+                    ...provided,
+                    color: state.data.value === 'ADD_NEW_TYPE' ? '#4a90e2' : provided.color,
+                    fontWeight: state.data.value === 'ADD_NEW_TYPE' ? 'bold' : provided.fontWeight,
+                  })
+                }}
               />
             </div>
 
@@ -240,7 +369,7 @@ function AddSubWork() {
               />
             </div>
 
-            
+
             <div className="form-group">
               <label>รายละเอียด</label>
               <textarea
@@ -250,7 +379,7 @@ function AddSubWork() {
               ></textarea>
             </div>
 
-            
+
             <div className="form-group">
               <label>วันครบกำหนด</label>
               <input
@@ -262,7 +391,7 @@ function AddSubWork() {
               />
             </div>
 
-            
+
             <div className="form-group">
               <label>สถานะ</label>
               <select

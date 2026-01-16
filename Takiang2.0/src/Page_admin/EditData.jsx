@@ -11,31 +11,53 @@ function EditData() {
   const [searchId, setSearchId] = useState('');
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [allEmployees, setAllEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
 
-const handleSearch = async () => {
-  try {
-    setLoading(true);
-    const res = await axios.get(`/api/${openModal}/${searchId}`);
+  React.useEffect(() => {
+    fetchAllEmployees();
+  }, []);
 
-    const data = res.data;
-
-    if (data.due_date) {
-      // วิธีปลอดภัย ไม่ให้วันที่ลดลง
-      const dateObj = new Date(data.due_date);
-      const dateOnly = dateObj.toISOString().split('T')[0];
-      setFormData({ ...data, due_date: dateOnly });
-    } else {
-      setFormData(data);
+  const fetchAllEmployees = async () => {
+    try {
+      const res = await axios.get('/api/employees-with-users');
+      setAllEmployees(res.data || []);
+    } catch (err) {
+      console.error('Error loading employees:', err);
     }
+  };
 
-  } catch (err) {
-    console.error(err);
-    alert('ไม่พบข้อมูล');
-  } finally {
-    setLoading(false);
-  }
-};
-const workTypeOptions = [
+  const handleSearch = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`/api/${openModal}/${searchId}`);
+      const data = res.data;
+
+      if (data.due_date) {
+        const dateObj = new Date(data.due_date);
+        const dateOnly = dateObj.toISOString().split('T')[0];
+        setFormData({ ...data, due_date: dateOnly });
+      } else {
+        setFormData(data);
+      }
+
+      // Special logic for works: filter employees by project team
+      if (openModal === 'works' && data.project_id) {
+        const projRes = await axios.get(`/api/projects/${data.project_id}`);
+        const projData = projRes.data;
+        const teams = projData.responsible_team ? projData.responsible_team.split(',') : [];
+        const filtered = allEmployees.filter(emp => teams.includes(emp.team));
+        setFilteredEmployees(filtered);
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('ไม่พบข้อมูล');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const workTypeOptions = [
     { value: "แผ่นอะคริลิกตัดตรงหรือเลเซอร์", label: "แผ่นอะคริลิกตัดตรงหรือเลเซอร์" },
     { value: "ฟิล์มโปร่งแสง ", label: "ฟิล์มโปร่งแสง " },
     { value: "แผ่นพับประชาสัมพันธ์", label: "แผ่นพับประชาสัมพันธ์" },
@@ -66,35 +88,35 @@ const workTypeOptions = [
     { value: "วัสดุพีวีซีสำหรับพิมพ์งานขนาดใหญ่", label: "วัสดุพีวีซีสำหรับพิมพ์งานขนาดใหญ่" },
   ];
 
-const handleSave = async () => {
-  try {
-    if (openModal && searchId) {
-      console.log('PUT to:', `/api/${openModal}/${searchId}`, formData);
-      await axios.put(`/api/${openModal}/${searchId}`, formData);
-    } else if (openModal) {
-      console.log('POST to:', `/api/${openModal}`, formData);
-      await axios.post(`/api/${openModal}`, formData);
+  const handleSave = async () => {
+    try {
+      if (openModal && searchId) {
+        console.log('PUT to:', `/api/${openModal}/${searchId}`, formData);
+        await axios.put(`/api/${openModal}/${searchId}`, formData);
+      } else if (openModal) {
+        console.log('POST to:', `/api/${openModal}`, formData);
+        await axios.post(`/api/${openModal}`, formData);
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกสำเร็จ',
+        showConfirmButton: false,
+        timer: 1500
+      });
+
+      setOpenModal(null);
+      setFormData({});
+      setSearchId('');
+    } catch (err) {
+      console.error('Save error:', err);
+      Swal.fire({
+        icon: 'error',
+        title: 'เกิดข้อผิดพลาด',
+        text: err.message || 'โปรดลองอีกครั้ง',
+      });
     }
-
-    Swal.fire({
-      icon: 'success',
-      title: 'บันทึกสำเร็จ',
-      showConfirmButton: false,
-      timer: 1500
-    });
-
-    setOpenModal(null);
-    setFormData({});
-    setSearchId('');
-  } catch (err) {
-    console.error('Save error:', err);
-    Swal.fire({
-      icon: 'error',
-      title: 'เกิดข้อผิดพลาด',
-      text: err.message || 'โปรดลองอีกครั้ง',
-    });
-  }
-};
+  };
 
 
   return (
@@ -137,28 +159,28 @@ const handleSave = async () => {
             {/* Form */}
             {openModal === 'customers' && formData && (
               <>
-              <label>ชื่อลูกค้า</label>
+                <label>ชื่อลูกค้า</label>
                 <input
                   type="text"
                   placeholder="ชื่อลูกค้า"
                   value={formData.customer_name || ''}
                   onChange={(e) => setFormData({ ...formData, customer_name: e.target.value })}
                 />
-              <label>เลขประจำตัวผู้เสียภาษี</label>
+                <label>เลขประจำตัวผู้เสียภาษี</label>
                 <input
                   type="text"
                   placeholder="เลขประจำตัวผู้เสียภาษี"
                   value={formData.tax_id || ''}
                   onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
                 />
-              <label>ที่อยู่ออกใบกำกับภาษี</label>
+                <label>ที่อยู่ออกใบกำกับภาษี</label>
                 <input
                   type="text"
                   placeholder="ที่อยู่ออกใบกำกับภาษี"
                   value={formData.billing_address || ''}
                   onChange={(e) => setFormData({ ...formData, billing_address: e.target.value })}
                 />
-              <label>อีเมล</label>
+                <label>อีเมล</label>
                 <input
                   type="text"
                   placeholder="อีเมล"
@@ -194,7 +216,7 @@ const handleSave = async () => {
 
             {openModal === 'projects' && formData && (
               <>
-              <label>ชื่อโปรเจค</label>
+                <label>ชื่อโปรเจค</label>
                 <input
                   type="text"
                   placeholder="ชื่อโปรโปรเจกต์"
@@ -234,29 +256,29 @@ const handleSave = async () => {
 
             {openModal === 'works' && formData && (
               <>
-              <label>ชื่องานย่อย</label>
+                <label>ชื่องานย่อย</label>
                 <input
                   type="text"
                   placeholder="ชื่องานย่อย"
                   value={formData.works_name || ''}
                   onChange={(e) => setFormData({ ...formData, works_name: e.target.value })}
                 />
-               <div className="form-group">
-      <label>ประเภทงาน</label>
-      <Select
-        options={workTypeOptions}
-        value={workTypeOptions.find(opt => opt.value === formData.work_type) || null}
-        onChange={(selected) =>
-          setFormData(prev => ({ ...prev, work_type: selected?.value || '' }))
-        }
-        placeholder="-- เลือกประเภทงาน --"
-        isSearchable
-        maxMenuHeight={150}
-      />
-    </div>
+                <div className="form-group">
+                  <label>ประเภทงาน</label>
+                  <Select
+                    options={workTypeOptions}
+                    value={workTypeOptions.find(opt => opt.value === formData.work_type) || null}
+                    onChange={(selected) =>
+                      setFormData(prev => ({ ...prev, work_type: selected?.value || '' }))
+                    }
+                    placeholder="-- เลือกประเภทงาน --"
+                    isSearchable
+                    maxMenuHeight={150}
+                  />
+                </div>
 
-               <label>ราคา</label>
-              <input
+                <label>ราคา</label>
+                <input
                   type="text"
                   placeholder="ราคา"
                   value={formData.price || ''}
@@ -270,12 +292,18 @@ const handleSave = async () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 />
                 <label>ผู้รับผิดชอบ</label>
-                <input
-                  type="text"
-                  placeholder="ผู้รับผิดชอบ"
+                <select
                   value={formData.assigned_to || ''}
                   onChange={(e) => setFormData({ ...formData, assigned_to: e.target.value })}
-                />
+                  style={{ width: '100%', padding: '0.5rem', marginBottom: '1rem' }}
+                >
+                  <option value="">-- เลือกผู้รับผิดชอบ --</option>
+                  {filteredEmployees.map(emp => (
+                    <option key={emp.employee_id} value={emp.username}>
+                      {emp.full_name} ({emp.username}) - ทีม {emp.team}
+                    </option>
+                  ))}
+                </select>
                 <label>วันครบกำหนด</label>
                 <input
                   type="date"

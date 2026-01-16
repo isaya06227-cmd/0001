@@ -18,9 +18,9 @@ app.use(express.static(STATIC_PATH));
 
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? [
-      'https://v2taskk.onrender.com', // domain จริงของ frontend
-      'https://www.v2taskk.onrender.com' // เพิ่มถ้ามี www
-    ]
+    'https://v2taskk.onrender.com', // domain จริงของ frontend
+    'https://www.v2taskk.onrender.com' // เพิ่มถ้ามี www
+  ]
   : ['http://localhost:5173',
     'http://localhost:5174'
   ];        // local dev
@@ -75,7 +75,7 @@ app.post('/api/register', async (req, res) => {
     // เข้ารหัสรหัสผ่าน
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    
+
     await db.query(
       'INSERT INTO user_login_work (user_id, username, password, employee_id, team) VALUES (?, ?, ?, ?, ?)',
       [userId, username, hashedPassword, employee_id, team]
@@ -114,11 +114,11 @@ app.post('/api/login', async (req, res) => {
 
     const team = (user.team || '').trim().toLowerCase(); // รับค่า team จาก DB ตัดช่องว่าง+toLowerCase
 
-    res.json({ 
-      message: 'ล็อกอินสำเร็จ', 
-      user_id: user.user_id, 
-      username: user.username, 
-      employee_id: user.employee_id, 
+    res.json({
+      message: 'ล็อกอินสำเร็จ',
+      user_id: user.user_id,
+      username: user.username,
+      employee_id: user.employee_id,
       team: team
     });
 
@@ -137,8 +137,8 @@ app.get('/api/projects/team/:team', async (req, res) => {
       `SELECT p.*, c.customer_name 
        FROM projects p 
        JOIN customers c ON p.customer_id = c.customer_id 
-       WHERE LOWER(TRIM(p.responsible_team)) = ?`,
-      [team.toLowerCase().trim()]
+       WHERE LOWER(p.responsible_team) LIKE ?`,
+      [`%${team.toLowerCase().trim()}%`]
     );
     res.json(rows);
   } catch (err) {
@@ -150,7 +150,16 @@ app.get('/api/projects/team/:team', async (req, res) => {
 app.get('/api/works/project/:project_id', async (req, res) => {
   const { project_id } = req.params;
   try {
-    const [rows] = await db.query('SELECT * FROM works WHERE project_id = ?', [project_id]);
+    const [rows] = await db.query(`
+      SELECT w.*,
+      IF(
+        (SELECT COUNT(*) FROM submitted_works sw WHERE sw.works_id = w.work_id AND sw.status = 'ผ่าน') > 0,
+        'เสร็จสิ้น',
+        w.status
+      ) AS status
+      FROM works w
+      WHERE w.project_id = ?
+    `, [project_id]);
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -168,7 +177,7 @@ app.get('/api/employees/:username', async (req, res) => {
       JOIN employee e ON u.employee_id = e.employee_id
       WHERE u.username = ?
     `
-    const [rows] = await db.query(sql, [username])  
+    const [rows] = await db.query(sql, [username])
 
     if (rows.length > 0) {
       res.json(rows[0])
@@ -218,7 +227,11 @@ app.get('/api/works/user/:username', async (req, res) => {
         w.description,
         w.price,
         w.due_date,
-        w.status,
+        IF(
+          (SELECT COUNT(*) FROM submitted_works sw WHERE sw.works_id = w.work_id AND sw.status = 'ผ่าน') > 0,
+          'เสร็จสิ้น',
+          w.status
+        ) AS status,
         p.project_name
       FROM works w
       JOIN projects p ON w.project_id = p.project_id
@@ -229,6 +242,48 @@ app.get('/api/works/user/:username', async (req, res) => {
     res.json(rows);
   } catch (err) {
     console.error('Error fetching works:', err);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
+// New dedicated endpoint for My Work page - reads status directly from database
+app.get('/api/my-works/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    console.log(`[My Works] Fetching works for user: ${username}`);
+
+    const [rows] = await db.query(
+      `SELECT 
+        w.work_id,
+        w.works_name,
+        w.work_type,
+        w.description,
+        w.price,
+        w.due_date,
+        w.status,
+        w.project_id,
+        p.project_name
+      FROM works w
+      JOIN projects p ON w.project_id = p.project_id
+      WHERE w.assigned_to = ?
+      ORDER BY 
+        CASE w.status
+          WHEN 'กำลังดำเนินการ' THEN 1
+          WHEN 'รอดำเนินการ' THEN 2
+          WHEN 'เสร็จสิ้น' THEN 3
+          WHEN 'ยกเลิก' THEN 4
+          ELSE 5
+        END,
+        w.due_date ASC`,
+      [username]
+    );
+
+    console.log(`[My Works] Found ${rows.length} works for ${username}`);
+    console.log('[My Works] Sample data:', rows.slice(0, 2));
+
+    res.json(rows);
+  } catch (err) {
+    console.error('[My Works] Error:', err);
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
@@ -292,7 +347,12 @@ app.get('/api/works/inprogress/:username', async (req, res) => {
       `SELECT w.work_id AS works_id, w.works_name, w.project_id, p.project_name
        FROM works w
        JOIN projects p ON w.project_id = p.project_id
-       WHERE w.assigned_to = ? AND w.status = 'กำลังดำเนินการ'`,
+       WHERE w.assigned_to = ? 
+         AND w.status = 'กำลังดำเนินการ'
+         AND NOT EXISTS (
+            SELECT 1 FROM submitted_works sw 
+            WHERE sw.works_id = w.work_id AND sw.status = 'ผ่าน'
+         )`,
       [username]
     );
 
@@ -367,14 +427,44 @@ app.post('/api/customers', async (req, res) => {
       [customer_name, gender, phone, other_contact, tax_id, billing_address, email]
     );
 
-    res.status(201).json({ 
-      message: 'เพิ่มลูกค้าสำเร็จ', 
-      customer_id: result.insertId 
+    res.status(201).json({
+      message: 'เพิ่มลูกค้าสำเร็จ',
+      customer_id: result.insertId
     });
 
   } catch (err) {
     console.error('เพิ่มลูกค้าไม่สำเร็จ:', err);
     res.status(500).json({ error: 'เพิ่มลูกค้าไม่สำเร็จ' });
+  }
+});
+
+// แก้ไขข้อมูลลูกค้า
+app.put('/api/customers/:id', async (req, res) => {
+  const { id } = req.params;
+  const { customer_name, gender, phone, other_contact, tax_id, billing_address, email } = req.body;
+  try {
+    await db.query(
+      `UPDATE customers 
+       SET customer_name = ?, gender = ?, phone = ?, other_contact = ?, tax_id = ?, billing_address = ?, email = ?
+       WHERE customer_id = ?`,
+      [customer_name, gender, phone, other_contact, tax_id, billing_address, email, id]
+    );
+    res.json({ message: 'แก้ไขข้อมูลลูกค้าสำเร็จ' });
+  } catch (err) {
+    console.error('แก้ไขลูกค้าไม่สำเร็จ:', err);
+    res.status(500).json({ error: 'แก้ไขลูกค้าไม่สำเร็จ' });
+  }
+});
+
+// ลบข้อมูลลูกค้า
+app.delete('/api/customers/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await db.query('DELETE FROM customers WHERE customer_id = ?', [id]);
+    res.json({ message: 'ลบลูกค้าสำเร็จ' });
+  } catch (err) {
+    console.error('ลบลูกค้าไม่สำเร็จ:', err);
+    res.status(500).json({ error: 'ลบลูกค้าไม่สำเร็จ' });
   }
 });
 
@@ -411,13 +501,13 @@ app.get('/api/submitted-works', async (req, res) => {
 
 
 app.put('/api/submitted-works/update', async (req, res) => {
-  const { username, project_id, works_id, round_number, status, reviewer_comment } = req.body;
+  const { username, project_id, works_id, round_number, status, reviewer_comment, submitted_id, link } = req.body;
 
   const conn = await db.getConnection();
   try {
     await conn.beginTransaction();
 
-    // อัปเดต submitted_works รอบที่แก้ไขเท่านั้น
+    // 1. อัปเดต submitted_works รอบที่แก้ไข
     await conn.query(
       `UPDATE submitted_works 
        SET status = ?, reviewer_comment = ? 
@@ -425,11 +515,51 @@ app.put('/api/submitted-works/update', async (req, res) => {
       [status, reviewer_comment, username, project_id, works_id, round_number]
     );
 
+    // 2. ถ้าสถานะเป็น 'ผ่าน' ให้ทำขั้นตอนเพิ่มเติมเหมือนหน้า Consider
+    if (status === 'ผ่าน') {
+      console.log(`[Update] Status is 'ผ่าน' for work ${works_id}. Syncing to works table...`);
+
+      // อัปเดตสถานะงานย่อยเป็น 'เสร็จสิ้น'
+      await conn.query(
+        `UPDATE works SET status = 'เสร็จสิ้น' WHERE work_id = ?`,
+        [works_id]
+      );
+
+      // บันทึกประวัติใน exported_works (ถ้ามีข้อมูล)
+      if (submitted_id) {
+        try {
+          await conn.query(`
+            INSERT IGNORE INTO exported_works 
+            (submitted_id, username, project_id, works_id, round_number, link, reviewer_comment, review_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+            [submitted_id, username, project_id, works_id, round_number || 1, link || '', reviewer_comment]
+          );
+        } catch (e) {
+          console.log('Exported works insert skipped:', e.message);
+        }
+      }
+
+      // ตรวจสอบว่างานทั้งหมดในโปรเจกต์นี้เสร็จหรือยัง
+      const [pendingRows] = await conn.query(
+        `SELECT COUNT(*) as count FROM works 
+         WHERE project_id = ? AND status NOT IN ('เสร็จสิ้น', 'ยกเลิก', 'ผ่าน')`,
+        [project_id]
+      );
+
+      if (pendingRows[0].count === 0) {
+        console.log(`All works for project ${project_id} are done. Updating project status...`);
+        await conn.query(
+          `UPDATE projects SET status = 'เสร็จสิ้น' WHERE project_id = ?`,
+          [project_id]
+        );
+      }
+    }
+
     await conn.commit();
-    res.json({ message: 'อัปเดตสถานะ submitted_works เรียบร้อย' });
+    res.json({ message: 'อัปเดตสถานะเรียบร้อยและซิงค์ข้อมูลลงตารางหลักแล้ว' });
   } catch (error) {
     await conn.rollback();
-    console.error(error);
+    console.error('Update Submitted Work Error:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอัปเดตสถานะ' });
   } finally {
     conn.release();
@@ -477,6 +607,52 @@ app.post('/api/projects', async (req, res) => {
   }
 });
 
+app.get('/api/projects/all', async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT p.*, c.customer_name 
+      FROM projects p
+      LEFT JOIN customers c ON p.customer_id = c.customer_id
+      ORDER BY p.project_id DESC
+    `);
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching all projects:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรเจกต์ทั้งหมด' });
+  }
+});
+
+// ลบโปรเจกต์ตาม project_id
+app.delete('/api/projects/:id', async (req, res) => {
+  const projectId = req.params.id;
+
+  const conn = await db.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    // 1. ลบงานย่อยที่เกี่ยวข้อง (Works) ก่อน
+    await conn.query('DELETE FROM works WHERE project_id = ?', [projectId]);
+
+    // 2. ลบโปรเจกต์
+    const [result] = await conn.query('DELETE FROM projects WHERE project_id = ?', [projectId]);
+
+    if (result.affectedRows === 0) {
+      await conn.rollback();
+      return res.status(404).json({ error: 'ไม่พบโปรเจกต์ที่ต้องการลบ' });
+    }
+
+    await conn.commit();
+    res.json({ message: 'ลบโปรเจกต์และงานย่อยที่เกี่ยวข้องเรียบร้อยแล้ว' });
+
+  } catch (error) {
+    await conn.rollback();
+    console.error('Error deleting project:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการลบโปรเจกต์' });
+  } finally {
+    conn.release();
+  }
+});
+
 
 //โพสงานย่อย
 function getPrefix(workType) {
@@ -509,8 +685,8 @@ function getPrefix(workType) {
     case 'ป้ายสามเหลี่ยมตั้งพื้น พลาสวูด': return 'TPW';
     case 'การพิมพ์ระบบแห้งด้วยรังสียูวี': return 'UV';
     case 'วัสดุพีวีซีสำหรับพิมพ์งานขนาดใหญ่': return 'VN';
-    
-    
+
+
     default: return 'TK';
   }
 }
@@ -568,7 +744,7 @@ app.post('/api/works', async (req, res) => {
 app.get('/api/employees-with-users', async (req, res) => {
   try {
     const [rows] = await db.query(`
-      SELECT e.employee_id, e.full_name, u.username
+      SELECT e.employee_id, e.full_name, u.username, u.team
       FROM employee e
       LEFT JOIN user_login_work u 
         ON e.employee_id = u.employee_id
@@ -635,7 +811,7 @@ app.get('/api/projects/team/:team/inprogress', async (req, res) => {
     const [rows] = await db.query(
       `SELECT project_id, project_name, customer_id, price, responsible_team, due_date, status
        FROM projects
-       WHERE status = ? AND responsible_team = ?
+       WHERE status = ? AND FIND_IN_SET(?, responsible_team)
        ORDER BY (due_date IS NULL), due_date ASC, project_id DESC`,
       ['กำลังดำเนินการ', team]
     );
@@ -666,8 +842,13 @@ app.get('/api/:table/:id', async (req, res) => {
         FROM projects WHERE project_id = ?`;
     } else if (table === 'works') {
       query = `
-        SELECT work_id, works_name, work_type, description, assigned_to, 
-          DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date, status 
+        SELECT work_id, works_name, work_type, project_id, price, description, assigned_to, 
+          DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date, 
+          IF(
+            (SELECT COUNT(*) FROM submitted_works sw WHERE sw.works_id = works.work_id AND sw.status = 'ผ่าน') > 0,
+            'เสร็จสิ้น',
+            status
+          ) AS status
         FROM works WHERE work_id = ?`;
     } else if (table === 'customers') {
       // สมมติ customers ไม่มีคอลัมน์วันที่ หรือแก้ไขตามจริงถ้ามี
@@ -705,14 +886,22 @@ app.put('/api/:table/:id', async (req, res) => {
     ['due_date', 'date', 'created_at', 'updated_at'].forEach(field => {
       if (data[field]) {
         const d = new Date(data[field]);
-        data[field] = d.toISOString().split('T')[0];
+        if (!isNaN(d.getTime())) {
+          data[field] = d.toISOString().split('T')[0];
+        }
       }
     });
 
-    const fields = Object.keys(data);
+    // กรอง Primary Key ออก (ไม่ให้อัปเดต ID)
+    let fields = Object.keys(data).filter(field => field !== idColumn);
+
     if (fields.length === 0) {
       return res.status(400).json({ error: 'No data to update' });
     }
+
+    console.log(`\n=== UPDATE ${table} ===`);
+    console.log(`ID: ${idColumn} = ${id}`);
+    console.log(`Fields to update:`, fields);
 
     // สร้าง SET clause แบบ dynamic
     const setClause = fields.map(field => `?? = ?`).join(', ');
@@ -727,6 +916,9 @@ app.put('/api/:table/:id', async (req, res) => {
     // กำหนด params สำหรับ pool.query
     const params = [table, ...values, idColumn, id];
 
+    console.log('Update SQL:', sql);
+    console.log('Update Params:', params);
+
     const [result] = await pool.query(sql, params);
 
     if (result.affectedRows === 0) {
@@ -735,8 +927,8 @@ app.put('/api/:table/:id', async (req, res) => {
 
     res.json({ message: 'Update successful' });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Database error' });
+    console.error('Update Error:', error);
+    res.status(500).json({ error: error.message || 'Database error' });
   }
 });
 
@@ -794,7 +986,7 @@ app.get('/api/works/:id', async (req, res) => {
 
   try {
     const [rows] = await db.query(
-      `SELECT work_id, works_name, work_type,
+      `SELECT work_id, works_name, work_type, project_id,
               IFNULL(price, 0.00) AS price,  -- ป้องกัน NULL
               description, assigned_to,
               DATE_FORMAT(due_date, '%Y-%m-%d') AS due_date,
@@ -818,14 +1010,14 @@ app.get('/api/works/:id', async (req, res) => {
 // แก้ไขข้อมูลงานย่อยตาม work_id
 app.put('/api/works/:id', async (req, res) => {
   const workId = req.params.id;
-  const { works_name, work_type, description, assigned_to,price, due_date, status } = req.body;
+  const { works_name, work_type, description, assigned_to, price, due_date, status } = req.body;
 
   try {
     const [result] = await pool.query(
       `UPDATE works 
        SET works_name = ?, work_type = ?,price = ?, description = ?, assigned_to = ?, due_date = ?, status = ? 
        WHERE work_id = ?`,
-      [works_name, work_type, description, assigned_to,price, due_date, status, workId]
+      [works_name, work_type, description, assigned_to, price, due_date, status, workId]
     );
 
     if (result.affectedRows === 0) {
@@ -836,6 +1028,23 @@ app.put('/api/works/:id', async (req, res) => {
   } catch (error) {
     console.error('Error updating work:', error);
     res.status(500).json({ error: 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลงานย่อย' });
+  }
+});
+
+// ลบงานย่อยตาม work_id
+app.delete('/api/works/:id', async (req, res) => {
+  const workId = req.params.id;
+  try {
+    const [result] = await pool.query('DELETE FROM works WHERE work_id = ?', [workId]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'ไม่พบงานย่อยที่ต้องการลบ' });
+    }
+
+    res.json({ message: 'ลบงานย่อยเรียบร้อยแล้ว' });
+  } catch (error) {
+    console.error('Error deleting work:', error);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการลบงานย่อย' });
   }
 });
 
@@ -1053,6 +1262,88 @@ app.get('/api/reviewed-works', async (req, res) => {
 });
 
 
+
+// This endpoint approves work directly, skipping reviewed_works table
+app.post('/api/approve-work-direct', async (req, res) => {
+  const { submitted_id, username, project_id, works_id, round_number, link, reviewer_comment } = req.body;
+
+  try {
+    console.log('Direct Approval Request:', req.body);
+
+    // 1. อัปเดตสถานะใน submitted_works เป็น 'ผ่าน' (สำคัญ)
+    await db.query(
+      `UPDATE submitted_works SET status = 'ผ่าน' WHERE submitted_id = ?`,
+      [submitted_id]
+    );
+
+    // 2. Insert into exported_works (Archiving)
+    try {
+      await db.query(`
+          INSERT INTO exported_works 
+          (submitted_id, username, project_id, works_id, round_number, link, reviewer_comment, review_date)
+          VALUES (?, ?, ?, ?, ?, ?, ?, CURDATE())`,
+        [submitted_id, username, project_id, works_id, round_number, link, reviewer_comment]
+      );
+    } catch (e) {
+      console.log('Exported works insert skipped (maybe duplicate):', e.message);
+    }
+
+    // 3. Mark the Work as 'เสร็จสิ้น' immediately
+    console.log(`Attempting to update work status: work_id=${works_id} to 'เสร็จสิ้น'`);
+
+    // ตรวจสอบก่อนว่ามีงานนี้จริงหรือไม่
+    const [checkWork] = await db.query(
+      `SELECT work_id, status FROM works WHERE work_id = ?`,
+      [works_id]
+    );
+    console.log('Current work before update:', checkWork);
+
+    if (checkWork.length === 0) {
+      console.error(`ERROR: Work with work_id=${works_id} not found!`);
+      return res.status(404).json({ error: `งาน work_id=${works_id} ไม่พบในระบบ` });
+    }
+
+    // อัปเดตสถานะ
+    const [wRes] = await db.query(
+      `UPDATE works SET status = 'เสร็จสิ้น' WHERE work_id = ?`,
+      [works_id]
+    );
+    console.log('Work status update result:', { affectedRows: wRes.affectedRows, changedRows: wRes.changedRows });
+
+    if (wRes.affectedRows === 0) {
+      console.error(`WARNING: No rows affected when updating work_id=${works_id}`);
+    }
+
+    // ตรวจสอบหลังอัปเดต
+    const [verifyWork] = await db.query(
+      `SELECT work_id, status FROM works WHERE work_id = ?`,
+      [works_id]
+    );
+    console.log('Work after update:', verifyWork);
+
+    // 4. Check if ALL works in this project are 'เสร็จสิ้น' or 'ยกเลิก'
+    // If so, mark the Project as 'เสร็จสิ้น'
+    const [pendingRows] = await db.query(
+      `SELECT COUNT(*) as count FROM works 
+       WHERE project_id = ? AND status NOT IN ('เสร็จสิ้น', 'ยกเลิก', 'ผ่าน')`,
+      [project_id]
+    );
+
+    if (pendingRows[0].count === 0) {
+      console.log(`All works for project ${project_id} are done. Updating project status...`);
+      await db.query(
+        `UPDATE projects SET status = 'เสร็จสิ้น' WHERE project_id = ?`,
+        [project_id]
+      );
+    }
+
+    res.json({ message: 'อนุมัติงานและบันทึกเรียบร้อย' });
+
+  } catch (err) {
+    console.error('Approve Work Direct Error:', err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาดในการอนุมัติงาน' });
+  }
+});
 
 // ----- SPA Fallback: ใช้ RegExp แทน "*" -----
 app.get(/.*/, (req, res) => {
