@@ -128,6 +128,72 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+// ลบผู้ใช้ (User Login Work)
+app.delete('/api/users/:username', async (req, res) => {
+  const { username } = req.params;
+  try {
+    const [result] = await db.query('DELETE FROM user_login_work WHERE username = ?', [username]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'ไม่พบผู้ใช้ที่ต้องการลบ' });
+    }
+
+    res.json({ message: 'ลบผู้ใช้เรียบร้อยแล้ว' });
+  } catch (err) {
+    console.error('ลบผู้ใช้ล้มเหลว:', err);
+    res.status(500).json({ error: 'ลบผู้ใช้ล้มเหลว (อาจมีข้อมูลเชื่อมโยงอยู่)' });
+  }
+});
+
+// แก้ไขข้อมูลผู้ใช้ (Update User)
+app.put('/api/users/:username', async (req, res) => {
+  const { username } = req.params;
+  const { team, password, new_username, employee_id } = req.body;
+
+  try {
+    // 1. ถ้ามีการเปลี่ยน Username ต้องเช็คว่าซ้ำไหม
+    if (new_username && new_username !== username) {
+      const [existing] = await db.query('SELECT 1 FROM user_login_work WHERE username = ?', [new_username]);
+      if (existing.length > 0) {
+        return res.status(409).json({ message: 'ชื่อผู้ใช้นี้มีอยู่แล้ว' });
+      }
+    }
+
+    let query = 'UPDATE user_login_work SET team = ?';
+    let params = [team];
+
+    if (employee_id) {
+      query += ', employee_id = ?';
+      params.push(employee_id);
+    }
+
+    if (new_username && new_username !== username) {
+      query += ', username = ?';
+      params.push(new_username);
+    }
+
+    if (password && password.trim() !== '') {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query += ', password = ?';
+      params.push(hashedPassword);
+    }
+
+    query += ' WHERE username = ?';
+    params.push(username);
+
+    const [result] = await db.query(query, params);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: 'ไม่พบผู้ใช้ที่ต้องการแก้ไข' });
+    }
+
+    res.json({ message: 'แก้ไขข้อมูลผู้ใช้เรียบร้อยแล้ว' });
+  } catch (err) {
+    console.error('แก้ไขผู้ใช้ล้มเหลว:', err);
+    res.status(500).json({ error: 'แก้ไขผู้ใช้ล้มเหลว' });
+  }
+});
+
 
 // route: /api/projects/team/:team
 app.get('/api/projects/team/:team', async (req, res) => {

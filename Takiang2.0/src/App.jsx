@@ -20,6 +20,8 @@ import Status_work_A from './Page_admin/Status_work_A'
 import SubmitWork_A from './Page_admin/SubmitWork_A'
 import AddCustomer from './Page_admin/AddCustomer'
 import Add_user from './Page_admin/Add_user'
+import ManageUsers from './Page_admin/ManageUsers'
+import ManageEmployees from './Page_admin/ManageEmployees'
 import CheckWork from './Page_admin/CheckWork'
 import AddProject from './Page_admin/AddProject'
 import AddJob from './Page_admin/AddJob'
@@ -81,6 +83,12 @@ function App() {
         } />
         <Route path="/Add_user" element={
           <RequireAuth><Add_user /></RequireAuth>
+        } />
+        <Route path="/ManageUsers" element={
+          <RequireAuth><ManageUsers /></RequireAuth>
+        } />
+        <Route path="/ManageEmployees" element={
+          <RequireAuth><ManageEmployees /></RequireAuth>
         } />
         <Route path="/CheckWork" element={
           <RequireAuth><CheckWork /></RequireAuth>

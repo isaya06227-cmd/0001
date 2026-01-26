@@ -284,3 +284,57 @@ span {
     height: 24px;
   }
 }
+
+/* Toggle Button */
+.nav-toggle-btn {
+  position: fixed;
+  top: 1.5rem;
+  /* Align with navbar top padding */
+  left: 7.5rem;
+  /* Navbar width (6rem) + 1.5rem */
+  z-index: 10001;
+  /* Above navbar */
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  color: #555;
+}
+
+.nav-toggle-btn:hover {
+  background-color: #f0f0f0;
+  color: #333;
+}
+
+/* Navbar Transition */
+.navbar {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+/* Collapsed State */
+.navbar.collapsed {
+  transform: translateX(-120%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Button position when collapsed */
+body.nav-collapsed .nav-toggle-btn {
+  left: 1rem;
+  background-color: #fff;
+  /* Ensure visibility */
+}
+
+/* Mobile adjustments: Hide toggle on mobile */
+@media screen and (max-width: 768px) {
+  .nav-toggle-btn {
+    display: none;
+  }
+}

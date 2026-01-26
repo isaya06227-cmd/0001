@@ -8,6 +8,11 @@
   border-radius: 15px;
   margin-bottom: 1rem;
   margin-top: 1rem;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.nav-collapsed .content-wrapper {
+  margin-left: 2rem;
 }
 
 .card {
