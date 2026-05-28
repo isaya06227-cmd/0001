@@ -1,0 +1,99 @@
+
+> server@1.0.0 dev
+> nodemon server.js
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node server.js`[39m
+[dotenv@17.2.1] injecting env (9) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Server running on port 3001
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[dotenv@17.2.1] injecting env (9) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+Server running on port 3001
+[My Works] Fetching works for user: admin
+[My Works] Found 1 works for admin
+[My Works] Sample data: [
+  {
+    work_id: 'TK850',
+    works_name: 'Smoke Work 488296',
+    work_type: '?????????????????????????????',
+    description: 'Smoke work',
+    price: '100.00',
+    due_date: 2026-05-23T17:00:00.000Z,
+    status: '??????????????',
+    project_id: 'TK001',
+    project_name: 'Smoke Project 488296'
+  }
+]
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[dotenv@17.2.1] injecting env (9) from .env -- tip: ⚙️  override existing env vars with { override: true }
+Server running on port 3001
+[My Works] Fetching works for user: admin
+[My Works] Found 1 works for admin
+[My Works] Sample data: [
+  {
+    work_id: 'TK139',
+    works_name: 'Smoke Work 610592',
+    work_type: '?????????????????????????????',
+    description: 'Smoke work',
+    price: '100.00',
+    due_date: 2026-05-23T17:00:00.000Z,
+    status: '??????????????',
+    project_id: 'TK001',
+    project_name: 'Smoke Project 610592'
+  }
+]
+[My Works] Fetching works for user: admin
+[My Works] Found 0 works for admin
+[My Works] Sample data: []
+[My Works] Fetching works for user: admin
+[My Works] Found 0 works for admin
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: admin
+[My Works] Found 1 works for admin
+[My Works] Sample data: [
+  {
+    work_id: 'TK338',
+    works_name: 'Smoke Work 904623',
+    work_type: '?????????????????????????????',
+    description: 'Smoke work',
+    price: '100.00',
+    due_date: 2026-05-23T17:00:00.000Z,
+    status: '??????????????',
+    project_id: 'TK001',
+    project_name: 'Smoke Project 904623'
+  }
+]
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[My Works] Fetching works for user: employee
+[My Works] Found 0 works for employee
+[My Works] Sample data: []
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node server.js`[39m
+[dotenv@17.2.1] injecting env (9) from .env -- tip: ⚙️  suppress all logs with { quiet: true }
+Server running on port 3001

@@ -1,0 +1,8 @@
+node_modules
+dist
+npm-debug.log
+front-dev.log
+front-dev.err.log
+*.log
+.env
+.git

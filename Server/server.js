@@ -12,6 +12,16 @@ const pool = require('./db');
 app.use(cors());
 app.use(bodyParser.json());
 const cloudinary = require('./cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'employee_profiles',
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
+const upload = multer({ storage: storage });
 
 const STATIC_PATH = path.resolve(__dirname, "public");
 app.use(express.static(STATIC_PATH));
@@ -22,8 +32,20 @@ const allowedOrigins = process.env.NODE_ENV === 'production'
     'https://www.v2taskk.onrender.com' // เพิ่มถ้ามี www
   ]
   : ['http://localhost:5173',
-    'http://localhost:5174'
+    'http://localhost:5174',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174'
   ];        // local dev
+
+(process.env.FRONTEND_ORIGINS || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
+  .forEach(origin => {
+    if (!allowedOrigins.includes(origin)) {
+      allowedOrigins.push(origin);
+    }
+  });
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -536,15 +558,124 @@ app.delete('/api/customers/:id', async (req, res) => {
 
 
 
+// ------------------ Employees Management ------------------
+
+// Get all employees
 app.get('/api/employees', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT employee_id, full_name FROM employee');
+    const [rows] = await db.query('SELECT * FROM employee ORDER BY employee_id DESC');
     res.json(rows);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'เกิดข้อผิดพลาด' });
+    console.error('Error fetching employees:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการดึงข้อมูลพนักงาน' });
   }
 });
+
+// Add new employee with image upload
+app.post('/api/employees', upload.single('profile_image'), async (req, res) => {
+  const {
+    employee_id, full_name, gender, age, birth_date, citizen_id,
+    phone_number, start_date, resign_date, years_of_service,
+    bank_account, current_salary, department, position, Google_drive
+  } = req.body;
+
+  const profile_image_url = req.file ? req.file.path : null;
+
+  if (!employee_id || !full_name) {
+    return res.status(400).json({ message: 'กรุณากรอกรหัสพนักงานและชื่อพนักงาน' });
+  }
+
+  try {
+    // Normalize empty strings for date fields to NULL so MySQL DATE accepts them
+    const birth_date_value = (birth_date && String(birth_date).trim() !== '') ? birth_date : null;
+    const start_date_value = (start_date && String(start_date).trim() !== '') ? start_date : null;
+    const resign_date_value = (resign_date && String(resign_date).trim() !== '') ? resign_date : null;
+    const years_value = (years_of_service && String(years_of_service).trim() !== '') ? years_of_service : 0;
+    const current_salary_value = (current_salary && String(current_salary).trim() !== '') ? current_salary : 0.00;
+
+    await db.query(
+      `INSERT INTO employee (
+        employee_id, full_name, gender, age, birth_date, citizen_id, 
+        phone_number, start_date, resign_date, years_of_service, 
+        bank_account, current_salary, department, position, profile_image, Google_drive
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        employee_id, full_name, gender, age, birth_date_value, citizen_id,
+        phone_number, start_date_value, resign_date_value, years_value,
+        bank_account, current_salary_value, department, position, profile_image_url, Google_drive
+      ]
+    );
+    res.status(201).json({ message: 'เพิ่มพนักงานสำเร็จ' });
+  } catch (err) {
+    console.error('Error adding employee:', err);
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ message: 'รหัสพนักงานนี้มีอยู่แล้วในระบบ' });
+    }
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการเพิ่มพนักงาน' });
+  }
+});
+
+// Update employee with image upload
+app.put('/api/employees/:id', upload.single('profile_image'), async (req, res) => {
+  const { id } = req.params;
+  const {
+    full_name, gender, age, birth_date, citizen_id,
+    phone_number, start_date, resign_date, years_of_service,
+    bank_account, current_salary, department, position, Google_drive
+  } = req.body;
+
+  // Normalize empty strings for date fields to NULL and numeric defaults
+  const birth_date_value = (birth_date && String(birth_date).trim() !== '') ? birth_date : null;
+  const start_date_value = (start_date && String(start_date).trim() !== '') ? start_date : null;
+  const resign_date_value = (resign_date && String(resign_date).trim() !== '') ? resign_date : null;
+  const years_value = (years_of_service && String(years_of_service).trim() !== '') ? years_of_service : 0;
+  const current_salary_value = (current_salary && String(current_salary).trim() !== '') ? current_salary : 0.00;
+
+  let query = `UPDATE employee SET 
+    full_name = ?, gender = ?, age = ?, birth_date = ?, citizen_id = ?, 
+    phone_number = ?, start_date = ?, resign_date = ?, years_of_service = ?, 
+    bank_account = ?, current_salary = ?, department = ?, position = ?, Google_drive = ?`;
+
+  let params = [
+    full_name, gender, age, birth_date_value, citizen_id,
+    phone_number, start_date_value, resign_date_value, years_value,
+    bank_account, current_salary_value, department, position, Google_drive
+  ];
+
+  if (req.file) {
+    query += `, profile_image = ?`;
+    params.push(req.file.path);
+  }
+
+  query += ` WHERE employee_id = ?`;
+  params.push(id);
+
+  try {
+    await db.query(query, params);
+    res.json({ message: 'แก้ไขข้อมูลพนักงานสำเร็จ' });
+  } catch (err) {
+    console.error('Error updating employee:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการแก้ไขพนักงาน' });
+  }
+});
+
+// Delete employee
+app.delete('/api/employees/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const [users] = await db.query('SELECT 1 FROM user_login_work WHERE employee_id = ?', [id]);
+    if (users.length > 0) {
+      return res.status(400).json({ message: 'ไม่สามารถลบได้ เนื่องจากพนักงานนี้มีบัญชีผู้ใช้งานระบบอยู่' });
+    }
+    await db.query('DELETE FROM employee WHERE employee_id = ?', [id]);
+    res.json({ message: 'ลบพนักงานสำเร็จ' });
+  } catch (err) {
+    console.error('Error deleting employee:', err);
+    res.status(500).json({ message: 'เกิดข้อผิดพลาดในการลบพนักงาน' });
+  }
+});
+
+// ----------------------------------------------------------
 
 //สําหรับหน้าตรวจสอบงาน
 app.get('/api/submitted-works', async (req, res) => {
@@ -1294,7 +1425,7 @@ app.get('/api/submitted-works/pending-safe', async (req, res) => {
 app.get('/api/exported-works', async (req, res) => {
   try {
     const [rows] = await pool.query(`
-      SELECT ew.review_id, ew.submitted_id, ew.username, 
+      SELECT ew.export_id AS review_id, ew.submitted_id, ew.username, 
              ew.project_id, ew.works_id, ew.round_number,
              ew.link,  -- ดึงลิงก์จาก exported_works โดยตรง
              ew.review_date, ew.status, ew.reviewer_comment,

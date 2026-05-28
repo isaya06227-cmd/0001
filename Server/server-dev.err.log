@@ -1,0 +1,62 @@
+Ignoring invalid configuration option passed to Connection: acquireTimeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+Blocked by CORS: http://127.0.0.1:5173
+Error: Not allowed by CORS
+    at origin (C:\Users\Acer\Downloads\project\Server\server.js:45:16)
+    at C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:219:13
+    at optionsCallback (C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:199:9)
+    at corsMiddleware (C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:204:7)
+    at Layer.handleRequest (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:342:13)
+    at C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:297:9
+    at processParams (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:582:12)
+    at next (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:291:5)
+    at serveStatic (C:\Users\Acer\Downloads\project\Server\node_modules\serve-static\index.js:74:16)
+Blocked by CORS: http://127.0.0.1:5173
+Error: Not allowed by CORS
+    at origin (C:\Users\Acer\Downloads\project\Server\server.js:45:16)
+    at C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:219:13
+    at optionsCallback (C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:199:9)
+    at corsMiddleware (C:\Users\Acer\Downloads\project\Server\node_modules\cors\lib\index.js:204:7)
+    at Layer.handleRequest (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\layer.js:152:17)
+    at trimPrefix (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:342:13)
+    at C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:297:9
+    at processParams (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:582:12)
+    at next (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:291:5)
+    at serveStatic (C:\Users\Acer\Downloads\project\Server\node_modules\serve-static\index.js:74:16)
+Ignoring invalid configuration option passed to Connection: acquireTimeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+Error fetching reviewed_works: Error: Table 'a1_db.reviewed_works' doesn't exist
+    at PromisePool.query (C:\Users\Acer\Downloads\project\Server\node_modules\mysql2\lib\promise\pool.js:36:22)
+    at C:\Users\Acer\Downloads\project\Server\server.js:1301:31
+    at Layer.handleRequest (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\layer.js:152:17)
+    at next (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\route.js:117:3)
+    at handle (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (C:\Users\Acer\Downloads\project\Server\node_modules\router\lib\layer.js:152:17)
+    at C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:295:15
+    at processParams (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:582:12)
+    at next (C:\Users\Acer\Downloads\project\Server\node_modules\router\index.js:291:5) {
+  code: 'ER_NO_SUCH_TABLE',
+  errno: 1146,
+  sql: '\n' +
+    '      SELECT \n' +
+    '        rw.review_id,\n' +
+    '        rw.submitted_id,\n' +
+    '        rw.username,\n' +
+    '        rw.project_id,\n' +
+    '        p.project_name,\n' +
+    '        rw.works_id,\n' +
+    '        w.works_name,\n' +
+    '        rw.round_number,\n' +
+    '        rw.link,\n' +
+    '        rw.review_date,\n' +
+    '        rw.status,\n' +
+    '        rw.reviewer_comment\n' +
+    '      FROM reviewed_works rw\n' +
+    '      JOIN projects p ON rw.project_id = p.project_id\n' +
+    '      JOIN works w ON rw.works_id = w.work_id\n' +
+    '    ',
+  sqlState: '42S02',
+  sqlMessage: "Table 'a1_db.reviewed_works' doesn't exist"
+}
+Ignoring invalid configuration option passed to Connection: acquireTimeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
+Ignoring invalid configuration option passed to Connection: acquireTimeout. This is currently a warning, but in future versions of MySQL2, an error will be thrown if you pass an invalid configuration option to a Connection
