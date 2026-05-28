@@ -1543,16 +1543,11 @@ app.post('/api/approve-work-direct', async (req, res) => {
 });
 
 // ----- SPA Fallback: ใช้ RegExp แทน "*" -----
-//app.get(/.*/, (req, res) => {
- // res.sendFile(path.join(STATIC_PATH, "index.html"));
-//});
-
-app.get("/", (req, res) => {
-  res.json({
-    status: "success",
-    message: "API is running"
-  });
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(STATIC_PATH, "index.html"));
 });
+
+
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
